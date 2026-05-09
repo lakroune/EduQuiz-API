@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QUIZ B&W</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            border-radius: 0 !important;
+        }
+
+        body {
+            font-size: 10px;
+        }
+
+        .option-btn:hover {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .selected {
+            background-color: #000 !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-black font-mono">
+    <nav class="w-full border-b-2 border-black bg-white p-2 mb-4">
+        <div class="max-w-2xl mx-auto flex justify-between items-center">
+            <span class="text-[10px] font-black uppercase tracking-tighter">EduQuiz_v1.0</span>
+            <div class="flex gap-4">
+                <a href="index.html"
+                    class="text-[9px] font-bold uppercase hover:bg-black hover:text-white px-1 transition-all">Student_Mode</a>
+                <a href="admin.html"
+                    class="text-[9px] font-bold uppercase hover:bg-black hover:text-white px-1 transition-all">Admin_Panel</a>
+            </div>
+        </div>
+    </nav>
+    <div class="min-h-screen flex flex-col items-center justify-center p-2">
+        <div class="w-full max-w-sm border-2 border-black p-4">
+
+            <div class="border-b-2 border-black mb-4 pb-1">
+                <h1 class="text-xs font-black uppercase tracking-tighter">EduQuiz_v1.0</h1>
+            </div>
+
+            <div id="quiz-box">
+                <div id="loading" class="font-bold animate-pulse text-[8px]">CONNECTING_TO_DATABASE...</div>
+
+                <div id="question-area" class="hidden">
+                    <p id="question-text" class="text-[10px] font-bold mb-4 uppercase"></p>
+
+                    <div id="options-grid" class="grid grid-cols-1 gap-2"></div>
+
+                    <div class="mt-4">
+                        <button id="submit-btn"
+                            class="w-full border-2 border-black py-2 font-black uppercase text-[9px] hover:bg-black hover:text-white transition-all">
+                            VERIFY_DATA
+                        </button>
+                    </div>
+                </div>
+
+                <div id="result-area" class="mt-4 border-t-2 border-black pt-2 hidden text-[9px]">
+                    <p id="result-status" class="font-black uppercase mb-2"></p>
+                    <button id="next-btn" class="w-full bg-black text-white py-2 font-black uppercase">
+                        NEXT_STEP >>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const questionText = document.getElementById('question-text');
+        const optionsGrid = document.getElementById('options-grid');
+        const questionArea = document.getElementById('question-area');
+        const loading = document.getElementById('loading');
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const resultArea = document.getElementById('result-area');
+        const resultStatus = document.getElementById('result-status');
+
+        let currentId = null;
+        let selectedIdx = null;
+
+        async function loadQuestion() {
+            loading.classList.remove('hidden');
+            questionArea.classList.add('hidden');
+            resultArea.classList.add('hidden');
+            optionsGrid.innerHTML = '';
+            selectedIdx = null;
+
+            try {
+                const res = await fetch('http://localhost:3000/quiz/random');
+                const data = await res.json();
+                currentId = data._id;
+                questionText.innerText = data.question;
+
+                data.options.forEach((opt, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = "option-btn border border-black p-2 text-left font-bold uppercase text-[9px]";
+                    btn.innerText = `[${i}] ${opt}`;
+                    btn.onclick = () => {
+                        selectedIdx = i;
+                        document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                    };
+                    optionsGrid.appendChild(btn);
+                });
+
+                loading.classList.add('hidden');
+                questionArea.classList.remove('hidden');
+            } catch (e) {
+                loading.innerText = "SYSTEM_ERROR_FAILED";
+            }
+        }
+
+        submitBtn.onclick = async () => {
+            if (selectedIdx === null) return;
+            const res = await fetch('http://localhost:3000/quiz/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ questionId: currentId, userAnswer: selectedIdx })
+            });
+            const data = await res.json();
+            resultArea.classList.remove('hidden');
+            resultStatus.innerText = `RESULT: ${data.correct ? "PASSED" : "FAILED"}`;
+        };
+
+        nextBtn.onclick = loadQuestion;
+        loadQuestion();
+    </script>
+</body>
+
+</html>

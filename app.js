@@ -4,6 +4,8 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 const { v4: uuidv4 } = require('uuid');
+const cors = require('cors');
+app.use(cors());
 const mongoose = require('mongoose');
 const Question = require('./models/Question')
 

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROF_DASHBOARD</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            border-radius: 0 !important;
+        }
+
+        body {
+            font-size: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-black font-mono p-4">
+    <nav class="w-full border-b-2 border-black bg-white p-2 mb-4">
+        <div class="max-w-2xl mx-auto flex justify-between items-center">
+            <span class="text-[10px] font-black uppercase tracking-tighter">EduQuiz_v1.0</span>
+            <div class="flex gap-4">
+                <a href="index.html"
+                    class="text-[9px] font-bold uppercase hover:bg-black hover:text-white px-1 transition-all">Student_Mode</a>
+                <a href="admin.html"
+                    class="text-[9px] font-bold uppercase hover:bg-black hover:text-white px-1 transition-all">Admin_Panel</a>
+            </div>
+        </div>
+    </nav>
+    <div class="max-w-2xl mx-auto border-2 border-black p-4">
+        <h1 class="text-xs font-black uppercase border-b-2 border-black mb-4 pb-1">ADMIN_PANEL_V1.0</h1>
+
+        <!-- FORM SECTION -->
+        <div class="mb-8 border-b-2 border-black pb-4">
+            <h2 id="form-title" class="font-bold mb-2 uppercase text-[9px]">ADD_NEW_QUESTION</h2>
+            <input type="hidden" id="edit-id">
+
+            <div class="space-y-2">
+                <input id="q-text" type="text" placeholder="QUESTION_TEXT"
+                    class="w-full border border-black p-2 outline-none text-[9px]">
+
+                <div id="options-inputs" class="grid grid-cols-2 gap-2">
+                    <input type="text" placeholder="OPT_0"
+                        class="opt-in border border-black p-2 outline-none text-[9px]">
+                    <input type="text" placeholder="OPT_1"
+                        class="opt-in border border-black p-2 outline-none text-[9px]">
+                    <input type="text" placeholder="OPT_2"
+                        class="opt-in border border-black p-2 outline-none text-[9px]">
+                    <input type="text" placeholder="OPT_3"
+                        class="opt-in border border-black p-2 outline-none text-[9px]">
+                </div>
+
+                <input id="q-correct" type="number" placeholder="CORRECT_INDEX (0-3)"
+                    class="w-full border border-black p-2 outline-none text-[9px]">
+
+                <div class="flex gap-2">
+                    <button id="save-btn"
+                        class="flex-1 bg-black text-white p-2 font-bold uppercase text-[9px]">SAVE_DATA</button>
+                    <button id="cancel-btn"
+                        class="hidden flex-1 border border-black p-2 font-bold uppercase text-[9px]">CANCEL</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIST SECTION -->
+        <div>
+            <h2 class="font-bold mb-2 uppercase text-[9px]">DATABASE_ENTRIES</h2>
+            <div id="questions-list" class="space-y-2">
+                <!-- ITEMS INJECTED HERE -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/questions';
+        const list = document.getElementById('questions-list');
+        const saveBtn = document.getElementById('save-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        async function loadAll() {
+            const res = await fetch(API);
+            const data = await res.json();
+            list.innerHTML = '';
+            data.forEach(q => {
+                const div = document.createElement('div');
+                div.className = "border border-black p-2 flex justify-between items-center";
+                div.innerHTML = `
+                    <span class="text-[8px] uppercase font-bold truncate mr-2">${q.question}</span>
+                    <div class="flex gap-1">
+                        <button onclick="editMode('${q._id}', '${q.question}', ${JSON.stringify(q.options).replace(/"/g, '&quot;')}, ${q.correctAnswer})" class="bg-black text-white px-2 py-1 text-[7px]">EDIT</button>
+                        <button onclick="deleteItem('${q._id}')" class="border border-black px-2 py-1 text-[7px]">DEL</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        saveBtn.onclick = async () => {
+            const id = document.getElementById('edit-id').value;
+            const body = {
+                question: document.getElementById('q-text').value,
+                options: Array.from(document.querySelectorAll('.opt-in')).map(i => i.value),
+                correctAnswer: parseInt(document.getElementById('q-correct').value)
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API}/${id}` : API;
+
+            await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            resetForm();
+            loadAll();
+        };
+
+        window.deleteItem = async (id) => {
+            if (confirm('CONFIRM_DELETE?')) {
+                await fetch(`${API}/${id}`, { method: 'DELETE' });
+                loadAll();
+            }
+        };
+
+        window.editMode = (id, text, opts, correct) => {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('q-text').value = text;
+            const inputs = document.querySelectorAll('.opt-in');
+            opts.forEach((o, i) => inputs[i].value = o);
+            document.getElementById('q-correct').value = correct;
+
+            document.getElementById('form-title').innerText = "UPDATE_QUESTION";
+            cancelBtn.classList.remove('hidden');
+        };
+
+        function resetForm() {
+            document.getElementById('edit-id').value = '';
+            document.getElementById('q-text').value = '';
+            document.querySelectorAll('.opt-in').forEach(i => i.value = '');
+            document.getElementById('q-correct').value = '';
+            document.getElementById('form-title').innerText = "ADD_NEW_QUESTION";
+            cancelBtn.classList.add('hidden');
+        }
+
+        cancelBtn.onclick = resetForm;
+        loadAll();
+    </script>
+</body>
+
+</html>
