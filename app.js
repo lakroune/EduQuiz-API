@@ -88,3 +88,45 @@ app.post('/quiz/check', (req, res) => {
     }
 });
 
+
+app.delete('/questions/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = fs.readFileSync(questionsPath, 'utf8');
+        let questions = JSON.parse(data);
+
+        const newQuestions = questions.filter(q => q.id !== id);
+
+        if (questions.length === newQuestions.length) {
+            return res.status(404).json({ message: "question not found" });
+        }
+
+        fs.writeFileSync(questionsPath, JSON.stringify(newQuestions, null, 2));
+        res.json({ message: "the question deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ message: "Error deleting question" });
+    }
+});
+
+app.put('/questions/:id', (req, res) => {
+    try {
+        const { id } = req.params;
+        const { question, options, correctAnswer } = req.body;
+        
+        const data = fs.readFileSync(questionsPath, 'utf8');
+        let questions = JSON.parse(data);
+
+        const index = questions.findIndex(q => q.id === id);
+
+        if (index === -1) {
+            return res.status(404).json({ message: "question not found" });
+        }
+
+        questions[index] = { ...questions[index], question, options, correctAnswer };
+
+        fs.writeFileSync(questionsPath, JSON.stringify(questions, null, 2));
+        res.json({ message: "the question updated successfully", updatedQuestion: questions[index] });
+    } catch (err) {
+        res.status(500).json({ message: "Error updating question" });
+    }
+});
