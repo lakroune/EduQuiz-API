@@ -82,7 +82,7 @@
         const nextBtn = document.getElementById('next-btn');
         const resultArea = document.getElementById('result-area');
         const resultStatus = document.getElementById('result-status');
-
+        const url_base = '';
         let currentId = null;
         let selectedIdx = null;
 
@@ -94,7 +94,7 @@
             selectedIdx = null;
 
             try {
-                const res = await fetch('http://localhost:3000/quiz/random');
+                const res = await fetch(url_base + '/quiz/random');
                 const data = await res.json();
                 currentId = data._id;
                 questionText.innerText = data.question;
@@ -120,7 +120,7 @@
 
         submitBtn.onclick = async () => {
             if (selectedIdx === null) return;
-            const res = await fetch('http://localhost:3000/quiz/check', {
+            const res = await fetch(url_base + '/quiz/check', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ questionId: currentId, userAnswer: selectedIdx })
