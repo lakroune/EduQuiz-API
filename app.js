@@ -2,16 +2,16 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
-const PORT = 3000;
+require('dotenv').config();
+const PORT = process.env.PORT || 3000;
 const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 app.use(cors());
 const mongoose = require('mongoose');
 const Question = require('./models/Question')
 
-const dbURI = 'mongodb://dock_user:d940082ce220ba26d5b7f558@dockhosting.dev:49742';
 
-mongoose.connect(dbURI)
+mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Connected to Dockhosting MongoDB '))
     .catch(err => console.error('Connection error :', err));
 
