@@ -4,46 +4,49 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
+const Question = require('./models/Question')
+
+const dbURI = 'mongodb://dock_user:d940082ce220ba26d5b7f558@dockhosting.dev:49742';
+
+mongoose.connect(dbURI)
+    .then(() => console.log('Connected to Dockhosting MongoDB '))
+    .catch(err => console.error('Connection error :', err));
+
 app.use(express.json());
 
 const questionsPath = path.join(__dirname, 'data', 'questions.json');
 
-app.get('/questions', (req, res) => {
+app.get('/questions', async (req, res) => {
     try {
-        const data = fs.readFileSync(questionsPath, 'utf8');
-        const questions = JSON.parse(data);
+        const questions = await Question.find();
         res.json(questions);
     } catch (err) {
-        res.status(500).json({ message: "Error reading data" });
+        res.status(500).json({ message: "Error fetching data from MongoDB", error: err.message });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
 
-app.post('/questions', (req, res) => {
+
+app.post('/questions', async (req, res) => {
     try {
         const { question, options, correctAnswer } = req.body;
-
-        const data = fs.readFileSync(questionsPath, 'utf8');
-        const questions = JSON.parse(data);
-
-        const newQuestion = {
-            id: uuidv4(), 
+        const newQuestion = new Question({
             question,
             options,
             correctAnswer
-        };
-
-        questions.push(newQuestion);
-        fs.writeFileSync(questionsPath, JSON.stringify(questions, null, 2));
-
-        res.status(201).json({ message: "Question added!", question: newQuestion });
+        });
+        const savedQuestion = await newQuestion.save();
+        res.status(201).json({
+            message: "Question added to MongoDB!",
+            question: savedQuestion
+        });
     } catch (err) {
-        res.status(500).json({ message: "Error saving data" });
+        res.status(400).json({ message: "Error saving to database", error: err.message });
     }
 });
+
+
 app.get('/quiz/random', (req, res) => {
     try {
         const data = fs.readFileSync(questionsPath, 'utf8');
@@ -112,7 +115,7 @@ app.put('/questions/:id', (req, res) => {
     try {
         const { id } = req.params;
         const { question, options, correctAnswer } = req.body;
-        
+
         const data = fs.readFileSync(questionsPath, 'utf8');
         let questions = JSON.parse(data);
 
