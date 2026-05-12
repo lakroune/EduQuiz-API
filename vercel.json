@@ -7,9 +7,6 @@
     }
   ],
   "routes": [
-    { "src": "/questions(.*)", "dest": "app.js" },
-    { "src": "/quiz/(.*)", "dest": "app.js" },
-    { "src": "/admin", "dest": "app.js" },
-    { "src": "/", "dest": "app.js" }
+    { "src": "/(.*)", "dest": "app.js" }
   ]
 }
