@@ -17,6 +17,17 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use(express.json());
 
+
+app.use(express.static(path.join(__dirname, 'template')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'template', 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'template', 'admin.html'));
+});
+
 const questionsPath = path.join(__dirname, 'data', 'questions.json');
 
 app.get('/questions', async (req, res) => {
@@ -127,6 +138,5 @@ app.delete('/questions/:id', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
 
 module.exports = app;

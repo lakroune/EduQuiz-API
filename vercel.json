@@ -1,27 +1,16 @@
 {
-    "version": 2,
-    "builds": [
-        {
-            "src": "app.js",
-            "use": "@vercel/node"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/questions(.*)",
-            "dest": "app.js"
-        },
-        {
-            "src": "/quiz/(.*)",
-            "dest": "app.js"
-        },
-        {
-            "src": "/admin",
-            "dest": "template/admin.html"
-        },
-        {
-            "src": "/",
-            "dest": "template/index.html"
-        }
-    ]
+  "version": 2,
+  "builds": [
+    {
+      "src": "app.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    { "src": "/questions(.*)", "dest": "app.js" },
+    { "src": "/quiz/(.*)", "dest": "app.js" },
+    { "src": "/admin", "dest": "template/admin.html" },
+    { "src": "/", "dest": "template/index.html" },
+    { "handle": "filesystem" }
+  ]
 }
